@@ -16,10 +16,8 @@ flipper_length = st.number_input('Enter the flipper length (in mm)')
 body_mass = st.number_input('Enter the body mass (in g)')
 sex = st.selectbox('Select sex', ['Male', 'Female'])
 
-PATH_API = 'http://localhost:8080'
-
 if st.button("Predict species"):
-    url = PATH_API
+    url = st.secrets['API_URL']
     params = {
         'island': island,
         'bill_length_mm': bill_length,
@@ -30,8 +28,6 @@ if st.button("Predict species"):
     }
 
     response = requests.get(f'{url}/predict', params=params)
-
-    st.markdown(type(response))
 
     if response.status_code == 200:
         prediction = response.json()
