@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 
 import numpy as np
 import pandas as pd
@@ -7,49 +8,35 @@ import pandas as pd
 # Zoologist front
 """
 
-st.markdown(
-    """
-Remember that there are several ways to output content into your web page...
 
-Either like the title above by just creating a string (or an f-string) starting. Or like this paragraph using the `st.` function.
-"""
-)
+island = st.selectbox('Select island', ['Biscoe', 'Dream', 'Torgersen'])
+bill_length = st.number_input('Enter the bill length (in mm)', format="%d", step=1)
+bill_depth = st.number_input('Enter the bill depth (in mm)')
+flipper_length = st.number_input('Enter the flipper length (in mm)')
+body_mass = st.number_input('Enter the body mass (in g)')
+sex = st.selectbox('Select sex', ['Male', 'Female'])
 
-st.selectbox('Select island', ['Biscoe', 'Dream', 'Torgersen'])
-st.number_input('Enter the bill length (in mm)')
-st.number_input('Enter the bill depth (in mm)')
-st.number_input('Enter the flipper length (in mm)')
-st.number_input('Enter the body mass (in g)')
-st.selectbox('Select sex', ['Male', 'Female'])
+PATH_API = 'http://localhost:8080'
 
-"""
-## Here we would like to add some controllers in order to ask the user to input the characteristics of the penguin. We need to know all the inputs required by our model to make a prediction.
+if st.button("Predict species"):
+    url = PATH_API
+    params = {
+        'island': island,
+        'bill_length_mm': bill_length,
+        'bill_depth_mm': bill_depth,
+        'flipper_length_mm': flipper_length,
+        'body_mass_g': body_mass,
+        'sex': sex
+    }
 
-1. Let's ask for:
-- island (the location where the penguin lives: Biscoe, Dream or Torgersen)
-- bill length (in mm)
-- bill depth (in mm)
-- flipper length (in mm)
-- body mass (in g)
-- sex ("Male" or "Female")
-"""
+    response = requests.get(f'{url}/predict', params=params)
 
-"""
-## Once we have these, let's call our API in order to retrieve a prediction
+    st.markdown(type(response))
 
-See ? No need to load a `model.joblib` file in this app, we do not even need to know anything about Data Science in order to retrieve a prediction...
+    if response.status_code == 200:
+        prediction = response.json()
+        species = prediction['species'] if 'species' in prediction else prediction['prediction']
+        st.markdown(f'Predicted species: {prediction['prediction']}')
 
-🤔 How could we call our API ? Of course... The `requests` package 💡
-
-What are the steps to follow in order to call an API ?
-
-1. Which url will you use? Save it in a variable so you can easily change it later...
-
-2. Let's build a dictionary containing the parameters for our API...
-
-3. Let's call our API using the `requests` package...
-
-4. Let's retrieve the prediction from the **JSON** returned by the API...
-
-## Finally, we can display the prediction to the user
-"""
+    else:
+        st.error(f'API call failed with status {response.status_code}: {response.text}')
